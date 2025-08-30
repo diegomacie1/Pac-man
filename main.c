@@ -2,7 +2,8 @@
 #include <conio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <time.h>
+#include <stdlib.h>
+#include <windows.h>
 
 #define COLUNAS 28
 #define LINHAS 22
@@ -10,21 +11,50 @@
 #define PAREDE '#'
 #define VAZIO ' '
 #define PONTO '-'
-#define FANTASMA 'G'
 #define ESPECIAL '*'
 
-
 void iniciarMapa(char mapa[LINHAS][COLUNAS]);
-
-void moverFantasma (char mapa[LINHAS][COLUNAS], int *fantasmaX, int *fantasmaY);
 
 void printarMapa (char mapa[LINHAS][COLUNAS], int pontuacao);
 
 void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY,  char direcao, int *pPontuacao);
 //*pPontuacao é o que a função moverPacman usa para ter acesso ao endereço de memoria da pontuacao, assim a função pode modificar o valor da variavel pontuacao
 
+int main (){
+    char mapa[LINHAS][COLUNAS];
+    int pacmanX, pacmanY, pontuacao = 0;
+    char direcao;
 
-//Função que inicaliza o mapa e define o mapa inicial quando o programa é iniciado 
+    iniciarMapa(mapa);
+
+    for (int i = 0; i < LINHAS; i++){
+        for (int j = 0; j < COLUNAS; j++){
+        if (mapa[i][j] == PACMAN){
+            pacmanX = i;
+            pacmanY = j;
+            break;
+        }
+    }
+}
+
+while (true)
+{
+    printarMapa(mapa, pontuacao);
+
+    if (kbhit()) //A função kbhit retorna um valor que o C interpreta interpreta  como verdadeiro se uma tecla foi pressionada. Caso contrário ela retorna um valor falso.
+    {
+        direcao = getch();
+        //a cada interação do loop ele verifica se uma tecla foi pressionada
+        //se sim, ele atualiza a direção do movimento com a nova tecla que vc pressionou
+        //se não, ele continua usando a ultima direção.
+    }
+
+    moverPacman(mapa, &pacmanX, &pacmanY, direcao, &pontuacao);
+    Sleep(75); //atraso no loop de 10 millisegundos, pausa o código por 10 milisegundos a cada movimento do pacman.
+}
+
+return 0;
+}
 void iniciarMapa(char mapa[LINHAS][COLUNAS]){
 
     char mapaInicial[LINHAS][COLUNAS] = {
@@ -51,7 +81,6 @@ void iniciarMapa(char mapa[LINHAS][COLUNAS]){
         "#-##########-##-##########-#",
         "#--------------------------#",
         "############################",
-
     };
     for (int i = 0; i < LINHAS; i++){
         for (int j = 0; j < COLUNAS; j++){
@@ -60,12 +89,26 @@ void iniciarMapa(char mapa[LINHAS][COLUNAS]){
     }
 }
 
-//Função para printar o mapa e a pontuação na tela
 void printarMapa (char mapa[LINHAS][COLUNAS], int pontuacao){
-    system("cls");
-    printf("\n=============\n");
-    printf("\n  PONTOS:\n");
-    printf("  %d\n", pontuacao); //espaços para uma melhor visualização
+    CONSOLE_CURSOR_INFO cursorInfo; 
+    //CONSOLE_CURSOR_INFO: estura de dados (struct), armazena informações do console, 'cursorInfo' é o nome da variável do tipo
+    cursorInfo.dwSize = 100;
+    //Um dos campos da variável cursorInfo. controla o tamanho ou espessura do cursor. 100 faz com que o cursor ocupe 100% da altura da linha do caractere, parecendo um bloco sólido
+    cursorInfo.bVisible = FALSE;
+    //bVisible valor booleano que controla a visibilidade do cursor
+    // atribui FALSE (mesmo que zero para o pc) a este campo é que faz o cursor se tornar invisível
+    SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursorInfo);
+    //aplica o que defini na variável 'cursorInfo'
+    //SetConsoleCursorInfo: função que define a aparencia do cursor
+    //GetStdHandle(STD_OUTPUT_HANDLE): apenas a forma do codigo dizer ao windows 'quero aplicar essa configuração no terminal que está mostrando a saída programa
+    //&cursorInfo: & obtem o endereço da variavel cursorInfo. A função precisa do endereço para saber onde encontrar informações da configuração que defini
+
+    COORD pos; //A estrutura COORD é a forma de passar as coordenadas X e Y para a função
+    pos.X = 0; //ponto de partida do console no canto superior esqeuerdo da tela, o valor de X aumenta conforme você move o cursor para a direita
+    pos.Y = 0; //ponto de partida do console no canto superior esqeuerdo da tela, o valor de Y aumenta conforme você move o cursor para a baixo
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos); //Move o cursor para a posição que você especifica
+
+    printf("Pontos: %d\n", pontuacao); //espaços para uma melhor visualização
     for (int i = 0; i < LINHAS; i++)
     {
         for (int j = 0; j < COLUNAS; j++){
@@ -76,12 +119,10 @@ void printarMapa (char mapa[LINHAS][COLUNAS], int pontuacao){
     }
 }
 
-//Função para mover o pacman
 void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, char direcao, int *pPontuacao){
     int novoX = *pacmanX;
     int novoY = *pacmanY;
 
-    //Recebe uma direcao podendo ser w s a d para mover o pacman 
     switch(direcao){
         case 'w':
             novoX = *pacmanX - 1;
@@ -97,102 +138,17 @@ void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, char d
             break;
     }
 
-    //Logica para impedir que o pacman atravesse paredes ou vá para fora do mapa
     if (novoX >= 0 && novoX < LINHAS && novoY >= 0 && novoY < COLUNAS && mapa[novoX][novoY] != PAREDE)
     {
         if (mapa[novoX][novoY] == PONTO) //está verificando a próxima posição para onde o Pac-Man vai se mover. Ela faz uma pergunta: "A próxima casa é um ponto (-)?"
         {
             *pPontuacao = *pPontuacao + 1;
             //pega o valor atual da pontuação (*pPontuacao) e soma 1 a esse valor
-            //e entçao atualiza a variável original da pontuacao na função main com o novo valor.
+            //e entao atualiza a variável original da pontuacao na função main com o novo valor.
         }
-        //Atualiza o espaço que o Pacman passou para vazio
         mapa[*pacmanX][*pacmanY] = VAZIO;
         *pacmanX = novoX;
         *pacmanY = novoY;
-        //Atualiza a posição para printar o pacman
         mapa[*pacmanX][*pacmanY] = PACMAN;        
     }
-}
-
-//Funcao para mover o fantasma
-void moverFantasma (char mapa[LINHAS][COLUNAS], int *fantasmaX, int *fantasmaY){
-
-    int novoX = *fantasmaX;
-    int novoY = *fantasmaY;
-
-    // pega valores aleatorios para usar como movimento pro fantasma
-    int direcao = rand() % 4;
-
-    switch(direcao){
-        case 0:
-            novoX = *fantasmaX - 1;
-            break;
-        case 1:
-            novoX = *fantasmaX + 1;
-            break;
-        case 2:
-            novoY = *fantasmaY - 1;
-            break;
-        case 3:
-            novoY = *fantasmaY + 1;
-            break;
-    }
-    // Verifica se o movimento do fantasma é valido
-    if (novoX >= 0 && novoX < LINHAS && novoY >= 0 && novoY < COLUNAS && mapa[novoX][novoY] != PAREDE) {
-        //Para não apagar o ponto onde o fantasma passar 
-        mapa[*fantasmaX][*fantasmaY] = PONTO;
-        *fantasmaX = novoX;
-        *fantasmaY = novoY;
-        //Atualiza a posição para printar o fantasma
-        mapa[*fantasmaX][*fantasmaY] = FANTASMA;   
-
-    }
-}
-int main (){
-    char mapa[LINHAS][COLUNAS];
-    int pacmanX, pacmanY, pontuacao = 0, fantasmaX, fantasmaY;
-    char direcao;
-    bool gameOver = false;
-
-    srand(time(NULL));
-
-    iniciarMapa(mapa);
-
-    //loop para "encontrar" o pacman e o fantasma e saber a localizacao deles 
-    for (int i = 0; i < LINHAS; i++){
-        for (int j = 0; j < COLUNAS; j++){
-            if (mapa[i][j] == PACMAN){
-                pacmanX = i;
-                pacmanY = j;
-                break;
-            }
-            if (mapa[i][j] == FANTASMA){
-                fantasmaX = i;
-                fantasmaY = j;
-                break;
-            }
-        }
-    }
-
-    //loop para o jogo rodar enquanto não houver colisao entra o pacman e o fantasma
-    while (!gameOver)
-    {
-        printarMapa(mapa, pontuacao);
-
-        direcao = getch();
-
-        moverPacman(mapa, &pacmanX, &pacmanY, direcao, &pontuacao);
-        moverFantasma(mapa, &fantasmaX, &fantasmaY);
-
-        if(pacmanX == fantasmaX && pacmanY == fantasmaY){
-            gameOver = true;
-        }
-    }
-
-    system("cls");
-    printf("\n    GAME OVER!\n\n");
-    printf("    O fantasma te pegou!\n\n");
-
-    return 0;
 }
