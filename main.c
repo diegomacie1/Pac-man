@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdlib.h>
 #include <windows.h>
+#include <time.h>
+#include <mmsystem.h>
 
 #define COLUNAS 28
 #define LINHAS 22
@@ -12,48 +14,68 @@
 #define VAZIO ' '
 #define PONTO '-'
 #define ESPECIAL '*'
+#define FANTASMA 'G'
+
 
 void iniciarMapa(char mapa[LINHAS][COLUNAS]);
 
+void moverFantasma (char mapa[LINHAS][COLUNAS], int *fantasmaX, int *fantasmaY);
+
 void printarMapa (char mapa[LINHAS][COLUNAS], int pontuacao);
+
+char telaGameOver();
 
 void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY,  char direcao, int *pPontuacao);
 //*pPontuacao é o que a função moverPacman usa para ter acesso ao endereço de memoria da pontuacao, assim a função pode modificar o valor da variavel pontuacao
 
+void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *pontuacao, bool *gameOver, char *direcao);
+
 int main (){
     char mapa[LINHAS][COLUNAS];
-    int pacmanX, pacmanY, pontuacao = 0;
+    int pacmanX, pacmanY, pontuacao = 0, fantasmaX, fantasmaY;
     char direcao;
+    bool gameOver = false;
 
-    iniciarMapa(mapa);
+    srand(time(NULL));
 
-    for (int i = 0; i < LINHAS; i++){
-        for (int j = 0; j < COLUNAS; j++){
-        if (mapa[i][j] == PACMAN){
-            pacmanX = i;
-            pacmanY = j;
-            break;
+    while(true) {
+
+        resetarJogo(mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &pontuacao, &gameOver, &direcao);
+
+        while (!gameOver)
+        {
+            printarMapa(mapa, pontuacao);
+
+            if (kbhit()) //A função kbhit retorna um valor que o C interpreta interpreta  como verdadeiro se uma tecla foi pressionada. Caso contrário ela retorna um valor falso.
+            {
+                direcao = getch();
+                //a cada interação do loop ele verifica se uma tecla foi pressionada
+                //se sim, ele atualiza a direção do movimento com a nova tecla que vc pressionou
+                //se não, ele continua usando a ultima direção.
+            }
+            if(direcao == 'q'){
+                gameOver = true;
+                continue;
+            }
+
+            moverPacman(mapa, &pacmanX, &pacmanY, direcao, &pontuacao);
+            moverFantasma(mapa, &fantasmaX, &fantasmaY);
+            Sleep(100); //atraso no loop de 10 millisegundos, pausa o código por 10 milisegundos a cada movimento do pacman.
+            if(pacmanX == fantasmaX && pacmanY == fantasmaY){
+                gameOver = true;
+            }
         }
+
+        char escolha = telaGameOver();
+
+        if (escolha == '2'){
+            break;
+        } else{
+            continue;
+        }
+
+        return 0;
     }
-}
-
-while (true)
-{
-    printarMapa(mapa, pontuacao);
-
-    if (kbhit()) //A função kbhit retorna um valor que o C interpreta interpreta  como verdadeiro se uma tecla foi pressionada. Caso contrário ela retorna um valor falso.
-    {
-        direcao = getch();
-        //a cada interação do loop ele verifica se uma tecla foi pressionada
-        //se sim, ele atualiza a direção do movimento com a nova tecla que vc pressionou
-        //se não, ele continua usando a ultima direção.
-    }
-
-    moverPacman(mapa, &pacmanX, &pacmanY, direcao, &pontuacao);
-    Sleep(75); //atraso no loop de 10 millisegundos, pausa o código por 10 milisegundos a cada movimento do pacman.
-}
-
-return 0;
 }
 void iniciarMapa(char mapa[LINHAS][COLUNAS]){
 
@@ -67,11 +89,11 @@ void iniciarMapa(char mapa[LINHAS][COLUNAS]){
         "#-####-##-########-##-####-#",
         "#------##----##----##------#",
         "######-#####-##-#####-######",
-        "     #-##----------##-#     ",
-        "######-##-###--###-##-######",
-        "      -##-######-##-      ",
-        "######-##-######-##-######",
-        "     #-##----G-----##-#     ",
+        "     #-##-----------#-#     ",
+        "######-##-######-##-#-######",
+        "      -##-######-##---      ",
+        "######-##-######-##---######",
+        "     #-##----G------#-#     ",
         "######-##-########-##-######",
         "#------------##------------#",
         "#-####-#####-##-#####-####-#",
@@ -119,10 +141,12 @@ void printarMapa (char mapa[LINHAS][COLUNAS], int pontuacao){
     }
 }
 
+//Função para mover o pacman
 void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, char direcao, int *pPontuacao){
     int novoX = *pacmanX;
     int novoY = *pacmanY;
 
+    //Recebe uma direcao podendo ser w s a d para mover o pacman 
     switch(direcao){
         case 'w':
             novoX = *pacmanX - 1;
@@ -138,6 +162,27 @@ void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, char d
             break;
     }
 
+        //Teleporte horizontal
+    if (novoY < 0) { // Se estiver tentando sair pela esquerda
+        if (novoX == 10) {
+                novoY = COLUNAS - 1;
+            }
+        } else if (novoY >= COLUNAS) { // Se estiver tentando sair pela direita
+            if (novoX ==10) {
+            novoY = 0;
+            }
+        }
+    //Teleporte vertical
+    if (novoX < 0) { // Se estiver tentando sair por cima
+        if (novoY == 3 || novoY == 24) {
+            novoX = LINHAS - 1;
+        }
+    } else if (novoX >= LINHAS) { // Se estiver tentando sair por baixo
+        if (novoY == 3 || novoY == 24) {
+            novoX = 0;
+        }
+    }
+
     if (novoX >= 0 && novoX < LINHAS && novoY >= 0 && novoY < COLUNAS && mapa[novoX][novoY] != PAREDE)
     {
         if (mapa[novoX][novoY] == PONTO) //está verificando a próxima posição para onde o Pac-Man vai se mover. Ela faz uma pergunta: "A próxima casa é um ponto (-)?"
@@ -145,10 +190,88 @@ void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, char d
             *pPontuacao = *pPontuacao + 1;
             //pega o valor atual da pontuação (*pPontuacao) e soma 1 a esse valor
             //e entao atualiza a variável original da pontuacao na função main com o novo valor.
+
+            PlaySound("eating.wav", NULL, SND_FILENAME | SND_ASYNC | SND_NOSTOP);
+
+            //funçao para tocar o som do pacman comendo
+            //eating.wav nome do arquivo com som
         }
         mapa[*pacmanX][*pacmanY] = VAZIO;
         *pacmanX = novoX;
         *pacmanY = novoY;
         mapa[*pacmanX][*pacmanY] = PACMAN;        
     }
+}
+
+void moverFantasma (char mapa[LINHAS][COLUNAS], int *fantasmaX, int *fantasmaY){
+
+    int novoX = *fantasmaX;
+    int novoY = *fantasmaY;
+
+    // pega valores aleatorios para usar como movimento pro fantasma
+    int direcao = rand() % 4;
+
+    switch(direcao){
+        case 0:
+            novoX = *fantasmaX - 1;
+            break;
+        case 1:
+            novoX = *fantasmaX + 1;
+            break;
+        case 2:
+            novoY = *fantasmaY - 1;
+            break;
+        case 3:
+            novoY = *fantasmaY + 1;
+            break;
+    }
+    // Verifica se o movimento do fantasma é valido
+    if (novoX >= 0 && novoX < LINHAS && novoY >= 0 && novoY < COLUNAS && mapa[novoX][novoY] != PAREDE) {
+        //Para não apagar o ponto onde o fantasma passar 
+        mapa[*fantasmaX][*fantasmaY] = VAZIO;
+        *fantasmaX = novoX;
+        *fantasmaY = novoY;
+        //Atualiza a posição para printar o fantasma
+        mapa[*fantasmaX][*fantasmaY] = FANTASMA;   
+
+    }
+}
+
+char telaGameOver(){
+
+    system("cls");
+    printf("\n\n\n\n");
+    printf("        ###################\n");
+    printf("        #                 #\n");
+    printf("        #    GAME OVER    #\n");
+    printf("        #                 #\n");
+    printf("        ###################\n");
+    printf("\n\n");
+    printf("      1 - Tentar Novamente\n");
+    printf("      2 - Sair do Jogo\n");
+    printf("\n\n      Escolha uma opcao: ");
+
+    return getch();
+}
+
+void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *pontuacao, bool *gameOver, char *direcao){
+
+    iniciarMapa(mapa);
+    *pontuacao = 0;
+    *gameOver = false;
+    *direcao = 'd';
+
+    for (int i = 0; i < LINHAS; i++){
+        for (int j = 0; j < COLUNAS; j++){
+            if (mapa[i][j] == PACMAN){
+                *pacmanX = i;
+                *pacmanY = j;
+            }
+            if(mapa[i][j] == FANTASMA){
+                *fantasmaX = i;
+                *fantasmaY = j;
+            }
+        }
+    }
+
 }
