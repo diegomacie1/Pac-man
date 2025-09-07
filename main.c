@@ -53,8 +53,8 @@ int main (){
 
         printarMapa(mapa, pontos, vidas);
         resetarRodada (mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY);
-        PlaySound("intro.wav", NULL, SND_FILENAME | SND_ASYNC);
-        Sleep(4500); // Pausa o programa por 4,5 segundos (4500 milissegundos)
+        PlaySound("begin.wav", NULL, SND_FILENAME | SND_ASYNC);
+        Sleep(1000); // Pausa o programa por 1 segundos (1000 milissegundos)
 
         while (kbhit()) {
             getch(); // Limpa o buffer do teclado
@@ -99,17 +99,16 @@ int main (){
                     }
                 }
                 resetarRodada (mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY);
-                Sleep(4500);
+                Sleep(1500);
             }
-            
             
             // Condição para detectar as possiveis colisões entre o pacman e os fantasmas caso ela seja frontal e caso um passe pelo outro
             if ((pacmanX == fantasmaX && pacmanY == fantasmaY) || (pacmanX == fantasmaOldX && pacmanY == fantasmaOldY && pacmanOldX == fantasmaX && pacmanOldY == fantasmaY)){
             vidas--; // Diminui 1 vida
 
-            PlaySound("death.wav", NULL, SND_FILENAME | SND_ASYNC); 
-            // Pausa por 2 segundo para mostrar a colisão
-            Sleep(2000);
+            PlaySound("die.wav", NULL, SND_FILENAME | SND_ASYNC); 
+            // Pausa por 2,5 segundo para mostrar a colisão
+            Sleep(2500);
 
             // Se o jogador escolher '1', reinicia o jogo completamente antes de continuar o loop
             resetarRodada (mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY);
@@ -124,6 +123,8 @@ int main (){
 
         if (escolha == '2'){
             break;
+        } else{
+            resetarJogo (mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &pontos, &direcao, &caractereanterior);
         }
     }
     return 0;
@@ -258,7 +259,7 @@ void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, char d
 
             *pPontosdenivel-=1;
 
-            PlaySound("eating.wav", NULL, SND_FILENAME | SND_ASYNC | SND_NOSTOP);
+            PlaySound("pellet.wav", NULL, SND_FILENAME | SND_ASYNC | SND_NOSTOP);
             //funçao para tocar o som do pacman comendo
             //eating.wav nome do arquivo com som
         }
@@ -384,3 +385,4 @@ void resetarRodada (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int 
     mapa[*pacmanX][*pacmanY] = PACMAN;
     mapa[*fantasmaX][*fantasmaY] = FANTASMA;
 }
+
