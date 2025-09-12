@@ -16,7 +16,7 @@
 
 void iniciarMapa(char mapa[LINHAS][COLUNAS]);
 
-void moverFantasma (char mapa[LINHAS][COLUNAS], int *fantasmaX, int *fantasmaY);
+void moverFantasma (char mapa[LINHAS][COLUNAS], int *fantasmaX, int *fantasmaY, int *pacmanX, int *pacmanY);
 
 void printarMapa (char mapa[LINHAS][COLUNAS], int pontuacao, int vidas);
 
@@ -24,15 +24,15 @@ char telaGameOver();
 
 void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY,  char direcao, int *pPontuacao, int *pPontosdenivel);
 
-void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *pontos, int *pontosdenivel, char *direcao);
+void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *pontos, int *pontosdenivel, char *direcao, int *fantasmaX2, int *fantasmaY2);
 
-void posicionarPersonagens(int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY);
+void posicionarPersonagens(int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *fantasmaX2, int *fantasmaY2);
 
 char mapaDinamico[LINHAS][COLUNAS];
 
 int main (){
     char mapa[LINHAS][COLUNAS];
-    int pacmanX, pacmanY, pontos = 0, fantasmaX, fantasmaY, pacmanOldX, pacmanOldY, fantasmaOldX, fantasmaOldY, vidas, pontosdenivel;
+    int pacmanX, pacmanY, pontos = 0, fantasmaX, fantasmaY, pacmanOldX, pacmanOldY, fantasmaOldX, fantasmaOldY, vidas, pontosdenivel, fantasmaX2, fantasmaY2, fantasmaOldX2, fantasmaOldY2;
     char direcao;
 
     srand(time(NULL));
@@ -40,7 +40,7 @@ int main (){
     while(true) {
         vidas = 3;
 
-        resetarJogo(mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &pontos, &pontosdenivel, &direcao);
+        resetarJogo(mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &pontos, &pontosdenivel, &direcao, &fantasmaX2, &fantasmaY2);
 
         while (kbhit()) {
             getch(); // Limpa o buffer do teclado
@@ -64,33 +64,37 @@ int main (){
             if (pontosdenivel <= 0)
             {
                 Sleep(2000);
-                resetarJogo(mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &pontos, &pontosdenivel, &direcao);
+                resetarJogo(mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &pontos, &pontosdenivel, &direcao, &fantasmaX2, &fantasmaY2);
             }
 
-            //Guarda as posições antigas do pacman e do fantasma
+            //Guarda as posições antigas do pacman e dos fantasmas
             pacmanOldX = pacmanX;
             pacmanOldY = pacmanY;
             fantasmaOldX = fantasmaX;
             fantasmaOldY = fantasmaY;
+            fantasmaOldX2 = fantasmaX2;
+            fantasmaOldY2 = fantasmaY2;
 
             moverPacman(mapa, &pacmanX, &pacmanY, direcao, &pontos, &pontosdenivel);
-            moverFantasma(mapa, &fantasmaX, &fantasmaY);
+            moverFantasma(mapa, &fantasmaX, &fantasmaY, &pacmanX, &pacmanY);
+            moverFantasma(mapa, &fantasmaX2, &fantasmaY2, &pacmanX, &pacmanY);
 
             //atraso de movimento
-            Sleep(125); //atraso no loop de 125 millisegundos, pausa o código por 125 milisegundos a cada movimento do pacman.
+            Sleep(200); //atraso no loop de 250 millisegundos, pausa o código por 250 milisegundos a cada movimento do pacman.
             
             // Condição para detectar as possiveis colisões entre o pacman e os fantasmas caso ela seja frontal e caso um passe pelo outro
-            if ((pacmanX == fantasmaX && pacmanY == fantasmaY) || (pacmanX == fantasmaOldX && pacmanY == fantasmaOldY && pacmanOldX == fantasmaX && pacmanOldY == fantasmaY)){
-            vidas--; // Diminui 1 vida
+            if ((pacmanX == fantasmaX && pacmanY == fantasmaY) || (pacmanX == fantasmaOldX && pacmanY == fantasmaOldY && pacmanOldX == fantasmaX && pacmanOldY == fantasmaY) || (pacmanX == fantasmaX2 && pacmanY == fantasmaY2) || (pacmanX == fantasmaOldX2 && pacmanY == fantasmaOldY2 && pacmanOldX == fantasmaX2 && pacmanOldY == fantasmaY2)){
+                vidas--; // Diminui 1 vida
 
-            //No mapa dinamico pacman e o fantasma são substituidos por espaços vazios
-            mapaDinamico[pacmanX][pacmanY] = VAZIO;
-            mapaDinamico[fantasmaX][fantasmaY] = VAZIO;
+                //No mapa dinamico pacman e o fantasma são substituidos por espaços vazios
+                mapaDinamico[pacmanX][pacmanY] = VAZIO;
+                mapaDinamico[fantasmaX][fantasmaY] = VAZIO;
+                mapaDinamico[fantasmaX2][fantasmaY2] = VAZIO;
 
-            Sleep(2500); // Pausa por 2,5 segundo para mostrar a colisão
+                Sleep(2500); // Pausa por 2,5 segundo para mostrar a colisão
 
-            //atualiza o número de vidas
-            posicionarPersonagens(&pacmanX, &pacmanY, &fantasmaX, &fantasmaY);
+                //atualiza o número de vidas
+                posicionarPersonagens(&pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &fantasmaX2, &fantasmaY2);
             }
         }
 
@@ -98,7 +102,7 @@ int main (){
         if (escolha == '2'){
             break;
         } else{
-            resetarJogo(mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &pontos, &pontosdenivel, &direcao);
+            resetarJogo(mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &pontos, &pontosdenivel, &direcao, &fantasmaX2, &fantasmaY2);
             pontos = 0;
         }
     }
@@ -110,24 +114,24 @@ void iniciarMapa(char mapa[LINHAS][COLUNAS]){
 
         "### #################### ###",
         "#----#-------##-------##---#",
-        "#-##-#-#####-##-###-#-##-#-#",
-        "#-##---#####-##-###-#-##-#-#",
-        "#-#--#--#--------#--#----#-#",
-        "#-####-##-########-##-####-#",
+        "#----#-##-##----##-##-##-#-#",
+        "#-##---##-##-##-##-##-##-#-#",
+        "#-##---##----------##----#-#",
+        "#-####----########----####-#",
         "#------##----##----##------#",
-        "######-#####-##-#####-##-###",
-        "#------##           --##-###",
-        "##-###-## #### #### -###-###",
-        "-------## #       # --------",
-        "##-###-## ######### ####-###",
-        "#----#-##           #------#",
-        "###-##-##-########-##-######",
+        "######-#####-##-#####-###-##",
+        "#--------           -------#",
+        "##-###-##  ###  ### ##-##-##",
+        "---------           --------",
+        "##-#-#-##  ###  ### ##-##-##",
+        "#----#-##           #-----##",
+        "#-#-##-##-########-##-##-###",
         "#------------##------------#",
-        "#-####-#####-##-#####-####-#",
+        "#-#-##-#####-##-#####-##-#-#",
         "#---##------ ---------##---#",
-        "###-##-##-########-##-##-###",
+        "###-##-##-##-##-##-##-##-###",
         "#------##----##----##------#",
-        "#-####-##-##-##-##-##-####-#",
+        "#-####----##-##-##----####-#",
         "#------##----------##------#",
         "### #################### ###",
     };
@@ -257,28 +261,60 @@ void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, char d
     }
 }
 
-void moverFantasma (char mapa[LINHAS][COLUNAS], int *fantasmaX, int *fantasmaY){
+void moverFantasma (char mapa[LINHAS][COLUNAS], int *fantasmaX, int *fantasmaY, int *pacmanX, int *pacmanY){
 
     int novoX = *fantasmaX;
     int novoY = *fantasmaY;
 
-    // pega valores aleatorios para usar como movimento pro fantasma
-    int direcao = rand() % 4;
+    // A logica para perseguir o Pac-Man
+    int distX = *pacmanX - *fantasmaX; //calcula a distancia vertical entre o pacman e os fantasmas, se for positivo, o pacman está abaixo do fantasma, negativo o pacman esta acima
+    int distY = *pacmanY - *fantasmaY; //calcula a distancia horizontal entre o pacman e os fantasmas, se for positivo o pacman está a direita do fantamas, se for negativo o pacman esta a esquerda dos fantasmaa
 
-    switch(direcao){
-        case 0:
-            novoX = *fantasmaX - 1;
-            break;
-        case 1:
+    // A logica de perseguir principal de perseguição
+    if (abs(distX) > abs(distY)) { //compara distancia vertical (distX) com a distancia horizontal (distY), o abs() garante que a comparação seja feita com os valores positvios, igonora se o pacmana está a esquerda ou a direita, acima ou abaixo
+        if (distX > 0) {
             novoX = *fantasmaX + 1;
-            break;
-        case 2:
-            novoY = *fantasmaY - 1;
-            break;
-        case 3:
+        } else {
+            novoX = *fantasmaX - 1;
+        }
+    } else {
+        if (distY > 0) {
             novoY = *fantasmaY + 1;
-            break;
+        } else {
+            novoY = *fantasmaY - 1;
+        }
     }
+
+    if (novoX < 0 || novoX >= LINHAS || novoY < 0 || novoY >= COLUNAS || mapa[novoX][novoY] == PAREDE) {
+        novoX = *fantasmaX;
+        novoY = *fantasmaY;
+        
+        if (abs(distX) > abs(distY)) {
+            if (distY > 0) {
+                novoY = *fantasmaY + 1;
+            } else {
+                novoY = *fantasmaY - 1;
+            }
+        } else {
+            if (distX > 0) {
+                novoX = *fantasmaX + 1;
+            } else {
+                novoX = *fantasmaX - 1;
+            }
+        }
+    }
+
+    if (novoX < 0 || novoX >= LINHAS || novoY < 0 || novoY >= COLUNAS || mapa[novoX][novoY] == PAREDE) {
+        int direcao = rand() % 4;
+        
+        switch(direcao){
+            case 0: novoX = *fantasmaX - 1; break;
+            case 1: novoX = *fantasmaX + 1; break;
+            case 2: novoY = *fantasmaY - 1; break;
+            case 3: novoY = *fantasmaY + 1; break;
+        }
+    }
+    
     //Teleporte horizontal
     if (novoY < 0) { // Se estiver tentando sair pela esquerda
         if (novoX == 10) {
@@ -327,10 +363,17 @@ char telaGameOver(){
     printf("      1 - Tentar Novamente\n");
     printf("\n      2 - Sair do Jogo\n");
 
+    Sleep(1000); // Pausa por 1 
+    
+    // Limpa o buffer do teclado antes de ler a nova escolha
+    while (kbhit()) {
+        getch();
+    }
+
     return getch();
 }
 
-void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *pontos, int *pontosdenivel, char *direcao){
+void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *pontos, int *pontosdenivel, char *direcao, int *fantasmaX2, int *fantasmaY2){
 
     iniciarMapa(mapa);
 
@@ -350,19 +393,24 @@ void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *f
     }
 
     *direcao = 'd';
-    posicionarPersonagens(pacmanX, pacmanY, fantasmaX, fantasmaY);
+
+    posicionarPersonagens(pacmanX, pacmanY, fantasmaX, fantasmaY, fantasmaX2, fantasmaY2);
 
 }
 //Função para resetar apenas os personagens
-void posicionarPersonagens(int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY){
+void posicionarPersonagens(int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *fantasmaX2, int *fantasmaY2){
     
     *pacmanX = 16;
     *pacmanY = 12;
     *fantasmaX = 10;
     *fantasmaY = 13;
+    *fantasmaX2 = 10;
+    *fantasmaY2 = 14; 
     
     mapaDinamico[*pacmanX][*pacmanY] = PACMAN;
     mapaDinamico[*fantasmaX][*fantasmaY] = FANTASMA;
+    mapaDinamico[*fantasmaX2][*fantasmaY2] = FANTASMA;
 }
+
 
 
