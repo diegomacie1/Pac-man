@@ -14,6 +14,7 @@
 #define PONTO '-'
 #define ESPECIAL '*'
 #define FANTASMA 'M'
+#define MAX_VIDAS 10
 
 void iniciarMapa(char mapa[LINHAS][COLUNAS]);
 
@@ -25,7 +26,7 @@ char telaGameOver();
 
 void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY,  char direcao, int *pPontuacao, int *pPontosdenivel);
 
-void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *pontos, int *pontosdenivel, char *direcao, int *fantasmaX2, int *fantasmaY2);
+void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *pontos, int *pontosdenivel, char *direcao, int *fantasmaX2, int *fantasmaY2, int *vidas);
 
 void posicionarPersonagens(int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *fantasmaX2, int *fantasmaY2);
 
@@ -49,7 +50,7 @@ int main (){
     while(true) {
         vidas = 3;
 
-        resetarJogo(mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &pontos, &pontosdenivel, &direcao, &fantasmaX2, &fantasmaY2);
+        resetarJogo(mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &pontos, &pontosdenivel, &direcao, &fantasmaX2, &fantasmaY2, &vidas);
         
         while (vidas > 0)
         {
@@ -66,7 +67,7 @@ int main (){
             if (pontosdenivel <= 0)
             {
                 Sleep(2000);
-                resetarJogo(mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &pontos, &pontosdenivel, &direcao, &fantasmaX2, &fantasmaY2);
+                resetarJogo(mapa, &pacmanX, &pacmanY, &fantasmaX, &fantasmaY, &pontos, &pontosdenivel, &direcao, &fantasmaX2, &fantasmaY2, &vidas);
                 vidas++;
             }
             pacmanOldX = pacmanX;
@@ -206,7 +207,7 @@ void printarMapa (char mapa[LINHAS][COLUNAS], int pontos, int vidas){
         printf("C ");
     }
 
-    for (int i = 0; i < 3 - vidas; i++)
+    for (int i = 0; i < MAX_VIDAS - vidas; i++)
     {
         printf("  ");
     }
@@ -398,14 +399,14 @@ char telaGameOver(){
     return getch();
 }
 
-void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *pontos, int *pontosdenivel, char *direcao, int *fantasmaX2, int *fantasmaY2){
+void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *pontos, int *pontosdenivel, char *direcao, int *fantasmaX2, int *fantasmaY2, int *vidas){
 
     iniciarMapa(mapa);
 
     if (*pontos == 0) {
         *pontos = 0;
         posicionarPersonagens(pacmanX, pacmanY, fantasmaX, fantasmaY, fantasmaX2, fantasmaY2);
-        printarMapa(mapa, *pontos, 3);
+        printarMapa(mapa, *pontos, *vidas);
         PlaySound("begin.wav", NULL, SND_FILENAME | SND_ASYNC | SND_NOSTOP);
         Sleep(1300);
 
