@@ -18,13 +18,13 @@
 
 void iniciarMapa(char mapa[LINHAS][COLUNAS]);
 
-void moverFantasma (char mapa[LINHAS][COLUNAS], int *fantasmaX, int *fantasmaY, int *pacmanX, int *pacmanY, bool *fantasmaParado, clock_t *tempoParado);
-
 void printarMapa (char mapa[LINHAS][COLUNAS], int pontuacao, int vidas);
 
-char telaGameOver();
-
 void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY,  char direcao, int *pPontuacao, int *pPontosdenivel);
+
+void moverFantasma (char mapa[LINHAS][COLUNAS], int *fantasmaX, int *fantasmaY, int *pacmanX, int *pacmanY, bool *fantasmaParado, clock_t *tempoParado);
+
+char telaGameOver();
 
 void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *pontos, int *pontosdenivel, char *direcao, int *fantasmaX2, int *fantasmaY2, int *vidas);
 
@@ -137,10 +137,9 @@ int main (){
     }
     return 0;
 }
+
 void iniciarMapa(char mapa[LINHAS][COLUNAS]){
-
     char mapaInicial[LINHAS][COLUNAS] = {
-
         "### #################### ###",
         "#----#-------##-------#----#",
         "#-##-#-#####-##-#####-#-##-#",
@@ -171,8 +170,7 @@ void iniciarMapa(char mapa[LINHAS][COLUNAS]){
         }
     }
 }
-void printarMapa (char mapa[LINHAS][COLUNAS], int pontos, int vidas){
-    
+void printarMapa (char mapa[LINHAS][COLUNAS], int pontos, int vidas){   
     CONSOLE_CURSOR_INFO cursorInfo; 
     cursorInfo.dwSize = 100;
     cursorInfo.bVisible = FALSE;
@@ -199,7 +197,7 @@ void printarMapa (char mapa[LINHAS][COLUNAS], int pontos, int vidas){
         }   
         printf("\n");
     }
-
+    
     printf("\n");
 
     for (int i = 0; i < vidas; i++) 
@@ -211,10 +209,8 @@ void printarMapa (char mapa[LINHAS][COLUNAS], int pontos, int vidas){
     {
         printf("  ");
     }
-    printf("\n\n\n");
 }
 
-//Função para mover o pacman
 void moverPacman (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, char direcao, int *pPontuacao, int *pPontosdenivel){ 
     int novoX = *pacmanX;
     int novoY = *pacmanY;
@@ -377,7 +373,6 @@ void moverFantasma (char mapa[LINHAS][COLUNAS], int *fantasmaX, int *fantasmaY, 
 }
 
 char telaGameOver(){
-
     system("cls");
     printf("\n\n\n\n");
     printf("        ###################\n");
@@ -400,7 +395,6 @@ char telaGameOver(){
 }
 
 void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *pontos, int *pontosdenivel, char *direcao, int *fantasmaX2, int *fantasmaY2, int *vidas){
-
     iniciarMapa(mapa);
 
     if (*pontos == 0) {
@@ -423,10 +417,9 @@ void resetarJogo (char mapa[LINHAS][COLUNAS], int *pacmanX, int *pacmanY, int *f
     *direcao = 'd';
 
     posicionarPersonagens(pacmanX, pacmanY, fantasmaX, fantasmaY, fantasmaX2, fantasmaY2);
-
 }
+
 void posicionarPersonagens(int *pacmanX, int *pacmanY, int *fantasmaX, int *fantasmaY, int *fantasmaX2, int *fantasmaY2){
-    
     *pacmanX = 16;
     *pacmanY = 12;
     *fantasmaX = 10;
